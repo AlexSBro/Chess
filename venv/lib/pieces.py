@@ -89,8 +89,6 @@ class Knight(Piece):
                         tiles[self.x - i][self.y + j].highlight_if_unoccupied_by_friend(self.piece_side)
 
 
-
-
 class Bishop(Piece):
 
     def __init__(self, piece_side, x, y):
@@ -103,6 +101,34 @@ class Bishop(Piece):
 
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
 
+
+    def highlight_possible_moves(self, tiles):
+        move_up_right, move_down_right, move_down_left, move_up_left = (True, True, True, True)
+
+        for i in range(1, 8):
+            # Traverses up and right until hits piece
+            if self.y + i < 8 and self.x + i < 8 and move_up_right:
+                move_up_right = tiles[self.x + i][self.y + i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_up_right = False
+            # Traverses down and right until hits piece
+            if self.y - i >= 0 and self.x + i < 8 and move_down_right:
+                move_down_right = tiles[self.x + i][self.y - i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_down_right = False
+            # Traverses down and left until hits piece
+            if self.y - i >= 0 and self.x - i >= 0 and move_down_left:
+                move_down_left = tiles[self.x - i][self.y - i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_down_left = False
+            # Traverses up and left until hits piece
+            if self.x - i >= 0 and self.y + i < 8 and move_up_left:
+                move_up_left = tiles[self.x - i][self.y + i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_up_left = False
+            # Exits loop if no longer checking
+            if not (move_up_right or move_down_right or move_down_left or move_up_left):
+                break
 
 class Rook(Piece):
 
@@ -141,7 +167,7 @@ class Rook(Piece):
             else:
                 move_left = False
             # Exits loop if no longer checking
-            if not move_up and move_down and move_right and move_left:
+            if not (move_up or move_down or move_right or move_left):
                 break
 
 
@@ -157,6 +183,56 @@ class Queen(Piece):
             self.image = pygame.image.load("piece_images/black_queen.png")
 
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
+
+
+    def highlight_possible_moves(self, tiles):
+
+        move_up_right, move_down_right, move_down_left, move_up_left, move_up, move_down, move_right, move_left = (True, True, True, True, True, True, True, True)
+
+        for i in range(1, 8):
+            # Traverses up until hits piece
+            if self.y + i < 8 and move_up:
+                move_up = tiles[self.x][self.y + i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_up = False
+            # Traverses down until hits piece
+            if self.y - i >= 0 and move_down:
+                move_down = tiles[self.x][self.y - i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_down = False
+            # Traverses right until hits piece
+            if self.x + i < 8 and move_right:
+                move_right = tiles[self.x + i][self.y].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_right = False
+            # Traverses left until hits piece
+            if self.x - i >= 0 and move_left:
+                move_left = tiles[self.x - i][self.y].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_left = False
+            # Traverses up and right until hits piece
+            if self.y + i < 8 and self.x + i < 8 and move_up_right:
+                move_up_right = tiles[self.x + i][self.y + i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_up_right = False
+            # Traverses down and right until hits piece
+            if self.y - i >= 0 and self.x + i < 8 and move_down_right:
+                move_down_right = tiles[self.x + i][self.y - i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_down_right = False
+            # Traverses down and left until hits piece
+            if self.y - i >= 0 and self.x - i >= 0 and move_down_left:
+                move_down_left = tiles[self.x - i][self.y - i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_down_left = False
+            # Traverses up and left until hits piece
+            if self.x - i >= 0 and self.y + i < 8 and move_up_left:
+                move_up_left = tiles[self.x - i][self.y + i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_up_left = False
+            # Exits loop if no longer checking
+            if not (move_up_right or move_down_right or move_down_left or move_up_left or move_up or move_down or move_right or move_left)
+                break
 
 
 class King(Piece):
