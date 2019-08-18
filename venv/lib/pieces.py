@@ -231,7 +231,7 @@ class Queen(Piece):
             else:
                 move_up_left = False
             # Exits loop if no longer checking
-            if not (move_up_right or move_down_right or move_down_left or move_up_left or move_up or move_down or move_right or move_left)
+            if not (move_up_right or move_down_right or move_down_left or move_up_left or move_up or move_down or move_right or move_left):
                 break
 
 
@@ -246,6 +246,12 @@ class King(Piece):
             self.image = pygame.image.load("piece_images/black_king.png")
 
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
+
+    def highlight_possible_moves(self, tiles):
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                if 0 <= self.x + i < 8 and 0 <= self.y + j < 8 and not (i is 0 and j is 0):
+                    tiles[self.x + i][self.y + j].highlight_if_unoccupied_by_friend(self.piece_side)
 
 
 
