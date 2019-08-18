@@ -23,6 +23,9 @@ class Piece:
     def draw(self, screen):
         screen.blit(self.image, (settings.SQUARE_SIZE*self.x, settings.SQUARE_SIZE*self.y))
 
+    def highlight_possible_moves(self, tiles):
+        pass
+
 
 class Pawn(Piece):
 
@@ -51,6 +54,10 @@ class Knight(Piece):
 
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
 
+    def highlight_possible_moves(self, tiles):
+        pass
+
+
 
 class Bishop(Piece):
 
@@ -76,6 +83,12 @@ class Rook(Piece):
             self.image = pygame.image.load("piece_images/black_rook.png")
 
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
+
+    def highlight_possible_moves(self, tiles):
+        for row in tiles:
+            for tile in row:
+                if tile.x is self.x or tile.y is self.y:
+                    tile.highlighted = True
 
 
 class Queen(Piece):

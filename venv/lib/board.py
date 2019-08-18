@@ -53,13 +53,13 @@ class Board:
     pieces = []
 
     def __init__(self):
-        for y in range(8):
+        for x in range(8):
             self.tiles.append([])
-            for x in range(8):
+            for y in range(8):
                 side = TileSide.DARK
                 if (x+y)%2 == 0:
                     side = TileSide.LIGHT
-                self.tiles[y].append(Tile(x, y, side))
+                self.tiles[x].append(Tile(x, y, side))
 
     def draw(self, surface):
         for row in self.tiles:
@@ -74,12 +74,33 @@ class Board:
         y_pos = pos[1]
 
         self.deselect_if_selected()
-
         x, y = self.convert_coords_into_indecies(x_pos, y_pos)
 
-        self.tiles[y][x].click()
+        if self.selection is not None:
+            self.move_piece(x, y)
+        elif self.tiles[x][y].piece is not None:
+            self.select_piece(x, y)
 
-        self.selection = pos
+    def select_piece(self, x, y):
+        self.tiles[x][y].piece.highlight_possible_moves(self.tiles)
+        self.tiles[x][y].click()
+        self.selection = self.tiles[x][y].piece
+
+    def move_piece(self, x, y):
+        if self.tiles[x][y].piece is None or not self.tiles[x][y].piece.piece_side == self.selection.piece_side:
+            # Remove old selection
+            self.tiles[self.selection.x][self.selection.y].piece = None
+            # Remove piece on Square
+            if not self.tiles[x][y].piece is None:
+                self.pieces.remove(self.tiles[x][y].piece)
+            # Set new coords
+            self.selection.x = x
+            self.selection.y = y
+            # Add piece to new tile overriding old one if present
+            self.tiles[x][y].piece = self.selection
+            # Nullify board selection
+        self.selection = None
+
 
     def convert_coords_into_indecies(self, x_pos, y_pos):
         x = int(x_pos / settings.SQUARE_SIZE)
@@ -98,52 +119,55 @@ class Board:
 
     def setup_standard(self):
 
-        for tile in self.tiles[6]:
-            new_pawn = Pawn(PieceSide.WHITE, tile.x, tile.y)
-            tile.piece = new_pawn
-            self.pieces.append(new_pawn)
+        # Adds pawns
+
+        for i in range(len(self.tiles[0])):
+            white_pawn = Pawn(PieceSide.WHITE, i, 6)
+            self.tiles[i][6].piece = white_pawn
+            self.pieces.append(white_pawn)
+
+            black_pawn = Pawn(PieceSide.BLACK, i, 1)
+            self.tiles[i][1].piece = black_pawn
+            self.pieces.append(black_pawn)
+
+        # Black pieces
 
         black_rook_one = Rook(PieceSide.BLACK, 0, 0)
         self.tiles[0][0].piece = black_rook_one
         self.pieces.append(black_rook_one)
 
         black_rook_two = Rook(PieceSide.BLACK, 7, 0)
-        self.tiles[0][7].piece = black_rook_two
+        self.tiles[7][0].piece = black_rook_two
         self.pieces.append(black_rook_two)
 
         black_knight_one = Knight(PieceSide.BLACK, 1, 0)
-        self.tiles[0][1].piece = black_knight_one
+        self.tiles[1][0].piece = black_knight_one
         self.pieces.append(black_knight_one)
 
         black_knight_two = Knight(PieceSide.BLACK, 6, 0)
-        self.tiles[0][6].piece = black_knight_two
+        self.tiles[6][0].piece = black_knight_two
         self.pieces.append(black_knight_two)
 
         black_bishop_one = Bishop(PieceSide.BLACK, 2, 0)
-        self.tiles[0][2].piece = black_bishop_one
+        self.tiles[2][0].piece = black_bishop_one
         self.pieces.append(black_bishop_one)
 
         black_bishop_two = Bishop(PieceSide.BLACK, 5, 0)
-        self.tiles[0][5].piece = black_bishop_two
+        self.tiles[5][0].piece = black_bishop_two
         self.pieces.append(black_bishop_two)
 
         black_king = King(PieceSide.BLACK, 3, 0)
-        self.tiles[0][3].piece = black_king
+        self.tiles[3][0].piece = black_king
         self.pieces.append(black_king)
 
         black_queen = Queen(PieceSide.BLACK, 4, 0)
-        self.tiles[0][4].piece = black_queen
+        self.tiles[4][0].piece = black_queen
         self.pieces.append(black_queen)
 
         # White Pieces
 
-        for tile in self.tiles[1]:
-            new_pawn = Pawn(PieceSide.BLACK, tile.x, tile.y)
-            tile.piece = new_pawn
-            self.pieces.append(new_pawn)
-
         white_rook_one = Rook(PieceSide.WHITE, 0, 7)
-        self.tiles[7][0].piece = white_rook_one
+        self.tiles[0][7].piece = white_rook_one
         self.pieces.append(white_rook_one)
 
         white_rook_two = Rook(PieceSide.WHITE, 7, 7)
@@ -151,25 +175,25 @@ class Board:
         self.pieces.append(white_rook_two)
 
         white_knight_one = Knight(PieceSide.WHITE, 1, 7)
-        self.tiles[7][1].piece = white_knight_one
+        self.tiles[1][7].piece = white_knight_one
         self.pieces.append(white_knight_one)
 
         white_knight_two = Knight(PieceSide.WHITE, 6, 7)
-        self.tiles[7][6].piece = white_knight_two
+        self.tiles[6][7].piece = white_knight_two
         self.pieces.append(white_knight_two)
 
         white_bishop_one = Bishop(PieceSide.WHITE, 2, 7)
-        self.tiles[7][2].piece = white_bishop_one
+        self.tiles[2][7].piece = white_bishop_one
         self.pieces.append(white_bishop_one)
 
         white_bishop_two = Bishop(PieceSide.WHITE, 5, 7)
-        self.tiles[7][5].piece = white_bishop_two
+        self.tiles[5][7].piece = white_bishop_two
         self.pieces.append(white_bishop_two)
 
         white_king = King(PieceSide.WHITE, 3, 7)
-        self.tiles[7][3].piece = white_king
+        self.tiles[3][7].piece = white_king
         self.pieces.append(white_king)
 
         white_queen = Queen(PieceSide.WHITE, 4, 7)
-        self.tiles[7][4].piece = white_queen
+        self.tiles[4][7].piece = white_queen
         self.pieces.append(white_queen)
