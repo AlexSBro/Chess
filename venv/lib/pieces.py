@@ -62,9 +62,6 @@ class Pawn(Piece):
             tiles[self.x - 1][self.y + 1 * direction].highlight_if_unoccupied_by_friend(self.piece_side)
 
 
-
-
-
 class Knight(Piece):
 
     def __init__(self, piece_side, x, y):
@@ -78,7 +75,20 @@ class Knight(Piece):
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
 
     def highlight_possible_moves(self, tiles):
-        pass
+
+        for i in range(1,3):
+            for j in range(1,3):
+                if i is not j:
+                    if self.x + i < 8 and self.y + j < 8:
+                        tiles[self.x + i][self.y + j].highlight_if_unoccupied_by_friend(self.piece_side)
+                    if self.x - i >= 0 and self.y - j >= 0:
+                        tiles[self.x - i][self.y - j].highlight_if_unoccupied_by_friend(self.piece_side)
+                    if self.x + i < 8 and self.y - j >= 0:
+                        tiles[self.x + i][self.y - j].highlight_if_unoccupied_by_friend(self.piece_side)
+                    if self.x - i >= 0 and self.y + j < 8:
+                        tiles[self.x - i][self.y + j].highlight_if_unoccupied_by_friend(self.piece_side)
+
+
 
 
 class Bishop(Piece):
