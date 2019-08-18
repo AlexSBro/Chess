@@ -116,6 +116,35 @@ class Rook(Piece):
 
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
 
+    def highlight_possible_moves(self, tiles):
+        move_up, move_down, move_right, move_left = (True, True, True, True)
+
+        for i in range(1, 8):
+            # Traverses up until hits piece
+            if self.y + i < 8 and move_up:
+                move_up = tiles[self.x][self.y + i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_up = False
+            # Traverses down until hits piece
+            if self.y - i >= 0 and move_down:
+                move_down = tiles[self.x][self.y - i].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_down = False
+            # Traverses right until hits piece
+            if self.x + i < 8 and move_right:
+                move_right = tiles[self.x + i][self.y].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_right = False
+            # Traverses left until hits piece
+            if self.x - i >= 0 and move_left:
+                move_left = tiles[self.x - i][self.y].highlight_if_unoccupied_by_friend(self.piece_side)
+            else:
+                move_left = False
+            # Exits loop if no longer checking
+            if not move_up and move_down and move_right and move_left:
+                break
+
+
 
 class Queen(Piece):
 
