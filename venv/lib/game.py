@@ -19,6 +19,7 @@ def draw():
 
     board.draw(game_display)
 
+
 running = True
 
 while running:
@@ -28,7 +29,6 @@ while running:
         if event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             board.click(pos)
-            print(event)
 
     draw()
     pygame.display.update()

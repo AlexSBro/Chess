@@ -103,17 +103,12 @@ class Board:
             tile.piece = new_pawn
             self.pieces.append(new_pawn)
 
-        for tile in self.tiles[1]:
-            new_pawn = Pawn(PieceSide.BLACK, tile.x, tile.y)
-            tile.piece = new_pawn
-            self.pieces.append(new_pawn)
-
         black_rook_one = Rook(PieceSide.BLACK, 0, 0)
         self.tiles[0][0].piece = black_rook_one
         self.pieces.append(black_rook_one)
 
         black_rook_two = Rook(PieceSide.BLACK, 7, 0)
-        self.tiles[7][0].piece = black_rook_two
+        self.tiles[0][7].piece = black_rook_two
         self.pieces.append(black_rook_two)
 
         black_knight_one = Knight(PieceSide.BLACK, 1, 0)
@@ -124,5 +119,57 @@ class Board:
         self.tiles[0][6].piece = black_knight_two
         self.pieces.append(black_knight_two)
 
+        black_bishop_one = Bishop(PieceSide.BLACK, 2, 0)
+        self.tiles[0][2].piece = black_bishop_one
+        self.pieces.append(black_bishop_one)
 
+        black_bishop_two = Bishop(PieceSide.BLACK, 5, 0)
+        self.tiles[0][5].piece = black_bishop_two
+        self.pieces.append(black_bishop_two)
 
+        black_king = King(PieceSide.BLACK, 3, 0)
+        self.tiles[0][3].piece = black_king
+        self.pieces.append(black_king)
+
+        black_queen = Queen(PieceSide.BLACK, 4, 0)
+        self.tiles[0][4].piece = black_queen
+        self.pieces.append(black_queen)
+
+        # White Pieces
+
+        for tile in self.tiles[1]:
+            new_pawn = Pawn(PieceSide.BLACK, tile.x, tile.y)
+            tile.piece = new_pawn
+            self.pieces.append(new_pawn)
+
+        white_rook_one = Rook(PieceSide.WHITE, 0, 7)
+        self.tiles[7][0].piece = white_rook_one
+        self.pieces.append(white_rook_one)
+
+        white_rook_two = Rook(PieceSide.WHITE, 7, 7)
+        self.tiles[7][7].piece = white_rook_two
+        self.pieces.append(white_rook_two)
+
+        white_knight_one = Knight(PieceSide.WHITE, 1, 7)
+        self.tiles[7][1].piece = white_knight_one
+        self.pieces.append(white_knight_one)
+
+        white_knight_two = Knight(PieceSide.WHITE, 6, 7)
+        self.tiles[7][6].piece = white_knight_two
+        self.pieces.append(white_knight_two)
+
+        white_bishop_one = Bishop(PieceSide.WHITE, 2, 7)
+        self.tiles[7][2].piece = white_bishop_one
+        self.pieces.append(white_bishop_one)
+
+        white_bishop_two = Bishop(PieceSide.WHITE, 5, 7)
+        self.tiles[7][5].piece = white_bishop_two
+        self.pieces.append(white_bishop_two)
+
+        white_king = King(PieceSide.WHITE, 3, 7)
+        self.tiles[7][3].piece = white_king
+        self.pieces.append(white_king)
+
+        white_queen = Queen(PieceSide.WHITE, 4, 7)
+        self.tiles[7][4].piece = white_queen
+        self.pieces.append(white_queen)
