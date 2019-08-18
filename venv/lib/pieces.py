@@ -40,6 +40,30 @@ class Pawn(Piece):
 
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
 
+    def highlight_possible_moves(self, tiles):
+
+        # Changes directions for black or white
+        direction = 1
+        if self.piece_side is PieceSide.WHITE:
+            direction = -1
+
+        # Highlights the move directly in front
+        unoccupied = tiles[self.x][self.y + 1 * direction].highlight_if_unoccupied()
+
+        # Checks for being on the first square and being able to move two ahead as long as it was not blocked before
+        if unoccupied and (self.piece_side is PieceSide.WHITE and self.y is 6 or self.piece_side is PieceSide.BLACK and self.y is 1):
+            tiles[self.x][self.y + 2 * direction].highlight_if_unoccupied()
+
+        # Checks for diagonals and right with enemy pieces
+        if self.x + 1 < 8 and tiles[self.x + 1][self.y + 1 * direction].piece is not None and tiles[self.x + 1][self.y + 1 * direction].piece.piece_side is not self.piece_side:
+            tiles[self.x + 1][self.y + 1 * direction].highlight_if_unoccupied_by_friend(self.piece_side)
+        # Checks for diagonals and left with enemy pieces
+        if self.x - 1 > -1 and tiles[self.x - 1][self.y + 1 * direction].piece is not None and tiles[self.x - 1][self.y + 1 * direction].piece.piece_side is not self.piece_side:
+            tiles[self.x - 1][self.y + 1 * direction].highlight_if_unoccupied_by_friend(self.piece_side)
+
+
+
+
 
 class Knight(Piece):
 

@@ -42,3 +42,28 @@ class Tile:
 
     def click(self):
         self.selected = True
+
+    def highlight_if_unoccupied_by_friend(self, side):
+
+        if self.piece is not None:
+            if self.piece.piece_side is side:
+                self.highlighted = False
+            else:
+                self.highlighted = True
+            return False
+
+        else:
+            self.highlighted = True
+            return True
+
+
+    def highlight_if_unoccupied(self):
+
+        if self.piece is not None:
+            self.highlighted = False
+            return False
+
+        else:
+            self.highlighted = True
+            return True
+

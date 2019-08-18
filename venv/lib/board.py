@@ -34,11 +34,12 @@ class Board:
         x_pos = pos[0]
         y_pos = pos[1]
 
-        self.deselect_if_selected()
         x, y = self.convert_coords_into_indecies(x_pos, y_pos)
 
         if self.selection is not None:
             self.move_piece(x, y)
+            self.deselect()
+
         elif self.tiles[x][y].piece is not None:
             self.select_piece(x, y)
 
@@ -46,9 +47,10 @@ class Board:
         self.tiles[x][y].piece.highlight_possible_moves(self.tiles)
         self.tiles[x][y].click()
         self.selection = self.tiles[x][y].piece
+        self.selection.highlight_possible_moves(self.tiles)
 
     def move_piece(self, x, y):
-        if self.tiles[x][y].piece is None or not self.tiles[x][y].piece.piece_side == self.selection.piece_side:
+        if (self.tiles[x][y].piece is None or not self.tiles[x][y].piece.piece_side is self.selection.piece_side) and self.tiles[x][y].highlighted:
             # Remove old selection
             self.tiles[self.selection.x][self.selection.y].piece = None
             # Remove piece on Square
@@ -62,15 +64,10 @@ class Board:
             # Nullify board selection
         self.selection = None
 
-
     def convert_coords_into_indecies(self, x_pos, y_pos):
         x = int(x_pos / settings.SQUARE_SIZE)
         y = int(y_pos / settings.SQUARE_SIZE)
         return x, y
-
-    def deselect_if_selected(self):
-        if self.selection is not None:
-            self.deselect()
 
     def deselect(self):
         for row in self.tiles:
