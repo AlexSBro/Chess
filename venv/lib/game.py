@@ -2,6 +2,7 @@ import pygame
 import settings
 import colors
 import pieces
+import board_setter
 
 from board import Board
 
@@ -12,8 +13,8 @@ pygame.display.set_caption(settings.NAME)
 clock = pygame.time.Clock()
 
 board = Board()
-board.setup_standard()
-
+board_setup = board_setter.BoardSetter()
+board_setup.setup(board)
 
 def draw():
 
