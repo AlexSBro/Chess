@@ -25,6 +25,11 @@ class Piece:
     def highlight_possible_moves(self, tiles):
         pass
 
+    def move(self, new_x, new_y):
+        self.x = new_x
+        self.y = new_y
+
+
 
 class Pawn(Piece):
 
@@ -142,6 +147,10 @@ class Rook(Piece):
 
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
 
+    def move(self, new_x, new_y):
+        Piece.move(self, new_x, new_y)
+        self.moved = True
+
     def highlight_possible_moves(self, tiles):
         move_up, move_down, move_right, move_left = (True, True, True, True)
 
@@ -237,6 +246,8 @@ class Queen(Piece):
 
 class King(Piece):
 
+    moved = False
+
     def __init__(self, piece_side, x, y):
         Piece.__init__(self, piece_side, x, y)
 
@@ -252,6 +263,10 @@ class King(Piece):
             for j in range(-1, 2):
                 if 0 <= self.x + i < 8 and 0 <= self.y + j < 8 and not (i is 0 and j is 0):
                     tiles[self.x + i][self.y + j].highlight_if_unoccupied_by_friend(self.piece_side)
+
+    def move(self, new_x, new_y):
+        Piece.move(self, new_x, new_y)
+        self.moved = True
 
 
 
