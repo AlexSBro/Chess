@@ -57,7 +57,7 @@ class Board:
             if not self.tiles[x][y].piece is None:
                 self.pieces.remove(self.tiles[x][y].piece)
             # Set new coords
-            self.selection.move(x, y)
+            self.selection.move(x, y, self.tiles)
             # Add piece to new tile overriding old one if present
             self.tiles[x][y].piece = self.selection
             # Nullify board selection

@@ -10,6 +10,8 @@ class PieceSide(Enum):
 
 class Piece:
 
+    moved = False
+
     piece_side = PieceSide.WHITE
     x = 0
     y = 0
@@ -25,11 +27,11 @@ class Piece:
     def highlight_possible_moves(self, tiles):
         pass
 
-    def move(self, new_x, new_y):
+    def move(self, new_x, new_y, tiles):
         self.x = new_x
         self.y = new_y
 
-
+        self.moved = True
 
 class Pawn(Piece):
 
@@ -56,7 +58,7 @@ class Pawn(Piece):
         unoccupied = tiles[self.x][self.y + 1 * direction].highlight_if_unoccupied()
 
         # Checks for being on the first square and being able to move two ahead as long as it was not blocked before
-        if unoccupied and (self.piece_side is PieceSide.WHITE and self.y is 6 or self.piece_side is PieceSide.BLACK and self.y is 1):
+        if unoccupied and not self.moved:
             tiles[self.x][self.y + 2 * direction].highlight_if_unoccupied()
 
         # Checks for diagonals and right with enemy pieces
@@ -146,10 +148,6 @@ class Rook(Piece):
             self.image = pygame.image.load("piece_images/black_rook.png")
 
         self.image = pygame.transform.scale(self.image, (int(settings.SQUARE_SIZE), int(settings.SQUARE_SIZE)))
-
-    def move(self, new_x, new_y):
-        Piece.move(self, new_x, new_y)
-        self.moved = True
 
     def highlight_possible_moves(self, tiles):
         move_up, move_down, move_right, move_left = (True, True, True, True)
@@ -264,9 +262,25 @@ class King(Piece):
                 if 0 <= self.x + i < 8 and 0 <= self.y + j < 8 and not (i is 0 and j is 0):
                     tiles[self.x + i][self.y + j].highlight_if_unoccupied_by_friend(self.piece_side)
 
-    def move(self, new_x, new_y):
-        Piece.move(self, new_x, new_y)
-        self.moved = True
+        if not self.moved:
+            # Checks to castle on left
+            if tiles[self.x-2][self.y].piece is None and tiles[self.x - 1][self.y].piece is None and type(tiles[self.x - 3][self.y].piece) is Rook and not tiles[self.x - 3][self.y].piece.moved:
+                tiles[self.x - 2][self.y].highlighted = True
+            # Checks to castle on right
+            if tiles[self.x+3][self.y].piece is None and tiles[self.x+2][self.y].piece is None and tiles[self.x + 1][self.y].piece is None and type(tiles[self.x + 4][self.y].piece) is Rook and not tiles[self.x + 4][self.y].piece.moved:
+                tiles[self.x + 2][self.y].highlighted = True
 
+    def move(self, new_x, new_y, tiles):
+        if new_x is self.x - 2:
+            rook = tiles[0][self.y].piece
+            rook.move(self.x-1, self.y, tiles)
+            tiles[self.x-1][self.y].piece = rook
+            tiles[0][self.y].piece = None
 
+        if new_x is self.x + 2:
+            rook = tiles[7][self.y].piece
+            rook.move(self.x + 1, self.y, tiles)
+            tiles[self.x + 1][self.y].piece = rook
+            tiles[7][self.y].piece = None
 
+        Piece.move(self, new_x, new_y, tiles)
