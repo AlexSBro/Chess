@@ -21,8 +21,12 @@ class Piece:
         self.x = x
         self.y = y
 
-    def draw(self, screen):
-        screen.blit(self.image, (settings.SQUARE_SIZE*self.x, settings.SQUARE_SIZE*self.y))
+    def draw(self, screen, perspective_white=True):
+        y_adjusted = self.y
+        if perspective_white:
+            y_adjusted = abs(y_adjusted - 7)
+
+        screen.blit(self.image, (settings.SQUARE_SIZE*self.x, settings.SQUARE_SIZE*y_adjusted))
 
     def highlight_possible_moves(self, tiles):
         pass
@@ -40,7 +44,7 @@ class Pawn(Piece):
     def __init__(self, piece_side, x, y):
         Piece.__init__(self, piece_side, x, y)
 
-        if piece_side == PieceSide.WHITE:
+        if piece_side is PieceSide.WHITE:
             self.image = pygame.image.load("piece_images/white_pawn.png")
         else:
             self.image = pygame.image.load("piece_images/black_pawn.png")
@@ -50,9 +54,9 @@ class Pawn(Piece):
     def highlight_possible_moves(self, tiles):
 
         # Changes directions for black or white
-        direction = 1
+        direction = -1
         if self.piece_side is PieceSide.WHITE:
-            direction = -1
+            direction = 1
 
         # Highlights the move directly in front
         unoccupied = tiles[self.x][self.y + 1 * direction].highlight_if_unoccupied()

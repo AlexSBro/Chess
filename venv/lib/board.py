@@ -9,6 +9,8 @@ from settings import SQUARE_SIZE
 
 class Board:
 
+    perspective_white = True
+
     selection = None
     tiles = [[]]
     pieces = []
@@ -25,9 +27,13 @@ class Board:
     def draw(self, surface):
         for row in self.tiles:
             for tile in row:
-                pygame.draw.rect(surface, tile.get_color(), (tile.x*SQUARE_SIZE, tile.y*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
+                y_adjusted = tile.y
+                if self.perspective_white:
+                    y_adjusted = abs(y_adjusted-7)
+
+                pygame.draw.rect(surface, tile.get_color(), (tile.x*SQUARE_SIZE, y_adjusted*SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
                 if tile.piece is not None :
-                    tile.piece.draw(surface)
+                    tile.piece.draw(surface, self.perspective_white)
 
     def click(self, pos):
 
@@ -35,6 +41,9 @@ class Board:
         y_pos = pos[1]
 
         x, y = self.convert_coords_into_indecies(x_pos, y_pos)
+
+        if self.perspective_white:
+            y = abs(7-y)
 
         if self.selection is not None:
             self.move_piece(x, y)

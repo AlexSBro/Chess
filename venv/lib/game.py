@@ -25,11 +25,14 @@ running = True
 
 while running:
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        if event.type is pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONUP:
+        if event.type is pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             board.click(pos)
+        if event.type is pygame.KEYDOWN:
+            if event.key == pygame.K_p:
+                board.perspective_white = not board.perspective_white
 
     draw()
     pygame.display.update()
