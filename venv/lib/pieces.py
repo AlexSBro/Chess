@@ -271,16 +271,17 @@ class King(Piece):
                 tiles[self.x + 2][self.y].highlighted = True
 
     def move(self, new_x, new_y, tiles):
+        # Checks if castling to the right and moves the rook if doing so
         if new_x is self.x - 2:
             rook = tiles[0][self.y].piece
             rook.move(self.x-1, self.y, tiles)
             tiles[self.x-1][self.y].piece = rook
             tiles[0][self.y].piece = None
-
+        # Checks if castling to the left and moves the rook if doing so
         if new_x is self.x + 2:
             rook = tiles[7][self.y].piece
             rook.move(self.x + 1, self.y, tiles)
             tiles[self.x + 1][self.y].piece = rook
             tiles[7][self.y].piece = None
-
+        # Moves itself after the rook
         Piece.move(self, new_x, new_y, tiles)
