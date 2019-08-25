@@ -31,7 +31,7 @@ while running:
             pos = pygame.mouse.get_pos()
             board.click(pos)
         if event.type is pygame.KEYDOWN:
-            if event.key == pygame.K_p:
+            if event.key == pygame.K_SPACE:
                 board.perspective_white = not board.perspective_white
 
     draw()
