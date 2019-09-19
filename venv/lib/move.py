@@ -1,6 +1,7 @@
-
+from pieces import PieceSide
 
 class Move:
+    side = None
     piece = None
     from_x, from_y, to_x, to_y = (0, 0, 0, 0)
 
@@ -13,7 +14,7 @@ class MoveManager:
     board = None
     pieces = None
 
-    def make_move(self, piece, to_x, to_y):
+    def attempt_move(self, piece, to_x, to_y):
         pass
 
     def get_last(self):

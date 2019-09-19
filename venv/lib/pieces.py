@@ -7,6 +7,33 @@ class PieceSide(Enum):
     WHITE = 0
     BLACK = 1
 
+class PieceManager:
+    selection = None
+    pieces = []
+
+    def get_selection(self, x, y):
+        for piece in self.pieces:
+            if piece.x is x and piece.y is y:
+                return piece
+        return None
+
+    def try_select(self, x, y):
+        if self.selection is not None:
+            self.move_piece(x, y)
+            self.deselect()
+
+        elif self.tiles[x][y].piece is not None:
+            self.select_piece(x, y)
+
+    def select_piece(self, x, y, tiles):
+        self.tiles[x][y].piece.highlight_possible_moves(tiles)
+        self.tiles[x][y].click()
+        self.selection = tiles[x][y].piece
+        self.selection.highlight_possible_moves(tiles)
+
+    def draw(self, surface):
+        for piece in self.pieces:
+            piece.draw(surface)
 
 class Piece:
 

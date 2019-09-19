@@ -13,12 +13,15 @@ pygame.display.set_caption(settings.NAME)
 clock = pygame.time.Clock()
 
 board = Board()
+piece_manager = pieces.PieceManager()
+
 board_setup = board_setter.BoardSetter()
-board_setup.setup(board)
+board_setup.setup(piece_manager)
 
 def draw():
 
     board.draw(game_display)
+    piece_manager.draw(game_display)
 
 
 running = True
@@ -29,7 +32,15 @@ while running:
             running = False
         if event.type is pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
-            board.click(pos)
+            x, y = board.click(pos)
+            piece = piece_manager.get_selection(x, y)
+            if piece is not None:
+                piece.highlight_possible_moves(board.tiles)
+
+
+            # elif self.tiles[x][y].piece is not None:
+            #     self.select_piece(x, y)
+
         if event.type is pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 board.perspective_white = not board.perspective_white
