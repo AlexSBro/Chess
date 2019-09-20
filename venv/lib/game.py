@@ -33,10 +33,7 @@ while running:
         if event.type is pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             x, y = board.click(pos)
-            piece = piece_manager.get_selection(x, y)
-            if piece is not None:
-                piece.highlight_possible_moves(board.tiles)
-
+            piece_manager.get_piece_clicked(x, y, board)
 
             # elif self.tiles[x][y].piece is not None:
             #     self.select_piece(x, y)

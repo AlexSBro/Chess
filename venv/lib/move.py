@@ -1,4 +1,4 @@
-from pieces import PieceSide
+import pieces
 
 class Move:
     side = None

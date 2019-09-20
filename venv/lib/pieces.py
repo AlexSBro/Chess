@@ -8,31 +8,32 @@ class PieceSide(Enum):
     BLACK = 1
 
 class PieceManager:
-    selection = None
-    pieces = []
+    selected_piece = None
+    living_pieces = []
+    dead_pieces = []
 
-    def get_selection(self, x, y):
-        for piece in self.pieces:
+    def select_piece(self, x, y, piece, board):
+        piece.highlight_possible_moves(board.tiles)
+        board.tiles[x][y].click()
+        self.selected_piece = piece
+
+    def try_select(self, x, y, piece, board):
+        if self.selected_piece is not None:
+            self.move_piece(x, y)
+            board.deselect()
+
+        else:
+            self.select_piece(x, y, piece, board)
+
+    def get_piece_clicked(self, x, y, board):
+        for piece in self.living_pieces:
             if piece.x is x and piece.y is y:
+                self.try_select(x, y, piece, board)
                 return piece
         return None
 
-    def try_select(self, x, y):
-        if self.selection is not None:
-            self.move_piece(x, y)
-            self.deselect()
-
-        elif self.tiles[x][y].piece is not None:
-            self.select_piece(x, y)
-
-    def select_piece(self, x, y, tiles):
-        self.tiles[x][y].piece.highlight_possible_moves(tiles)
-        self.tiles[x][y].click()
-        self.selection = tiles[x][y].piece
-        self.selection.highlight_possible_moves(tiles)
-
     def draw(self, surface):
-        for piece in self.pieces:
+        for piece in self.living_pieces:
             piece.draw(surface)
 
 class Piece:
