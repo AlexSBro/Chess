@@ -2,6 +2,7 @@ import pygame
 import settings
 import colors
 import pieces
+import move
 import board_setter
 
 from board import Board
@@ -13,7 +14,8 @@ pygame.display.set_caption(settings.NAME)
 clock = pygame.time.Clock()
 
 board = Board()
-piece_manager = pieces.PieceManager()
+piece_manager = pieces.PieceManager(board)
+move_manager = move.MoveManager(piece_manager)
 
 board_setup = board_setter.BoardSetter()
 board_setup.setup(piece_manager)
@@ -31,12 +33,12 @@ while running:
         if event.type is pygame.QUIT:
             running = False
         if event.type is pygame.MOUSEBUTTONUP:
-            pos = pygame.mouse.get_pos()
-            x, y = board.click(pos)
-            piece_manager.get_piece_clicked(x, y, board)
 
-            # elif self.tiles[x][y].piece is not None:
-            #     self.select_piece(x, y)
+            pos = pygame.mouse.get_pos()
+
+            x, y = board.click(pos)
+
+            move_manager.click_tile(x, y)
 
         if event.type is pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
