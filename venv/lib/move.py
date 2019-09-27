@@ -60,6 +60,7 @@ class MoveManager:
     def move_piece(self, x, y):
         self.selected_piece.x = x
         self.selected_piece.y = y
+        self.selected_piece.moved = True
         self.deselect()
 
     def deselect(self):
