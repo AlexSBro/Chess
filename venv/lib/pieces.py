@@ -45,6 +45,13 @@ class PieceManager:
         else:
             return optional_piece.piece_side is not side
 
+    def can_move_to(self, x, y, side):
+        optional_piece = self.check_for_piece(x, y)
+        if optional_piece is None:
+            return True
+        else:
+            return optional_piece.piece_side is not side
+
     def draw(self, surface):
         for piece in self.living_pieces:
             piece.draw(surface)
@@ -73,6 +80,19 @@ class Piece:
 
     def highlight_possible_moves(self, tiles, piece_manager):
         pass
+
+    #This highlights if it is possible and returns if the piece should be able to keep moving.
+    def highlight_if_can_move_to(self, x, y, piece_manager, tiles):
+        optional_piece =  piece_manager.check_for_piece(x, y)
+        if optional_piece is None:
+            tiles[x][y].highlighted = True
+            return True
+        elif optional_piece.piece_side is not self.piece_side:
+            tiles[x][y].highlighted = True
+            return False
+        elif optional_piece.piece_side is self.piece_side:
+            return False
+
 
     def move(self, new_x, new_y, tiles):
         self.x = new_x
@@ -165,23 +185,24 @@ class Bishop(Piece):
 
         for i in range(1, 8):
             # Traverses up and right until hits piece
-            if self.y + i < 8 and self.x + i < 8 and move_up_right:
-                move_up_right = tiles[self.x + i][self.y + i].highlighted = True
+            if move_up_right and  self.y + i < 8 and self.x + i < 8:
+                move_up_right = self.highlight_if_can_move_to(self.x + i, self.y + i, piece_manager, tiles)
             else:
                 move_up_right = False
+
             # Traverses down and right until hits piece
-            if self.y - i >= 0 and self.x + i < 8 and move_down_right:
-                move_down_right = tiles[self.x + i][self.y - i].highlighted = True
+            if move_down_right and  self.y - i >= 0 and self.x + i < 8:
+                move_down_right = self.highlight_if_can_move_to(self.x + i, self.y - i, piece_manager, tiles)
             else:
                 move_down_right = False
             # Traverses down and left until hits piece
-            if self.y - i >= 0 and self.x - i >= 0 and move_down_left:
-                move_down_left = tiles[self.x - i][self.y - i].highlighted = True
+            if move_down_left and self.y - i >= 0 and self.x - i >= 0:
+                move_down_left = self.highlight_if_can_move_to(self.x - i, self.y - i, piece_manager, tiles)
             else:
                 move_down_left = False
             # Traverses up and left until hits piece
-            if self.x - i >= 0 and self.y + i < 8 and move_up_left:
-                move_up_left = tiles[self.x - i][self.y + i].highlighted = True
+            if move_up_left and self.x - i >= 0 and self.y + i < 8:
+                move_up_left = self.highlight_if_can_move_to(self.x - i, self.y + i, piece_manager, tiles)
             else:
                 move_up_left = False
             # Exits loop if no longer checking
@@ -205,23 +226,23 @@ class Rook(Piece):
 
         for i in range(1, 8):
             # Traverses up until hits piece
-            if self.y + i < 8 and move_up:
-                move_up = tiles[self.x][self.y + i].highlighted = True
+            if move_up and self.y + i < 8 and piece_manager.can_move_to(self.x, self.y + i, self.piece_side):
+                move_up = self.highlight_if_can_move_to(self.x, self.y + i, piece_manager, tiles)
             else:
                 move_up = False
             # Traverses down until hits piece
-            if self.y - i >= 0 and move_down:
-                move_down = tiles[self.x][self.y - i].highlighted = True
+            if move_down and  self.y - i >= 0:
+                move_down = self.highlight_if_can_move_to(self.x, self.y - i, piece_manager, tiles)
             else:
                 move_down = False
             # Traverses right until hits piece
-            if self.x + i < 8 and move_right:
-                move_right = tiles[self.x + i][self.y].highlighted = True
+            if move_right and self.x + i < 8:
+                move_right = self.highlight_if_can_move_to(self.x + i, self.y, piece_manager, tiles)
             else:
                 move_right = False
             # Traverses left until hits piece
-            if self.x - i >= 0 and move_left:
-                move_left = tiles[self.x - i][self.y].highlighted = True
+            if move_left and self.x - i >= 0:
+                move_left = self.highlight_if_can_move_to(self.x - i, self.y, piece_manager, tiles)
             else:
                 move_left = False
             # Exits loop if no longer checking
@@ -249,45 +270,48 @@ class Queen(Piece):
 
         for i in range(1, 8):
             # Traverses up until hits piece
-            if self.y + i < 8 and move_up:
-                move_up = tiles[self.x][self.y + i].highlighted = True
+            if move_up and self.y + i < 8 and piece_manager.can_move_to(self.x, self.y + i, self.piece_side):
+                move_up = self.highlight_if_can_move_to(self.x, self.y + i, piece_manager, tiles)
             else:
                 move_up = False
             # Traverses down until hits piece
-            if self.y - i >= 0 and move_down:
-                move_down = tiles[self.x][self.y - i].highlighted = True
+            if move_down and  self.y - i >= 0:
+                move_down = self.highlight_if_can_move_to(self.x, self.y - i, piece_manager, tiles)
             else:
                 move_down = False
             # Traverses right until hits piece
-            if self.x + i < 8 and move_right:
-                move_right = tiles[self.x + i][self.y].highlighted = True
+            if move_right and self.x + i < 8:
+                move_right = self.highlight_if_can_move_to(self.x + i, self.y, piece_manager, tiles)
             else:
                 move_right = False
             # Traverses left until hits piece
-            if self.x - i >= 0 and move_left:
-                move_left = tiles[self.x - i][self.y].highlighted = True
+            if move_left and self.x - i >= 0:
+                move_left = self.highlight_if_can_move_to(self.x - i, self.y, piece_manager, tiles)
             else:
                 move_left = False
             # Traverses up and right until hits piece
-            if self.y + i < 8 and self.x + i < 8 and move_up_right:
-                move_up_right = tiles[self.x + i][self.y + i].highlighted = True
+            if move_up_right and  self.y + i < 8 and self.x + i < 8:
+                move_up_right = self.highlight_if_can_move_to(self.x + i, self.y + i, piece_manager, tiles)
             else:
                 move_up_right = False
+
             # Traverses down and right until hits piece
-            if self.y - i >= 0 and self.x + i < 8 and move_down_right:
-                move_down_right = tiles[self.x + i][self.y - i].highlighted = True
+            if move_down_right and  self.y - i >= 0 and self.x + i < 8:
+                move_down_right = self.highlight_if_can_move_to(self.x + i, self.y - i, piece_manager, tiles)
             else:
                 move_down_right = False
             # Traverses down and left until hits piece
-            if self.y - i >= 0 and self.x - i >= 0 and move_down_left:
-                move_down_left = tiles[self.x - i][self.y - i].highlighted = True
+            if move_down_left and self.y - i >= 0 and self.x - i >= 0:
+                move_down_left = self.highlight_if_can_move_to(self.x - i, self.y - i, piece_manager, tiles)
             else:
                 move_down_left = False
             # Traverses up and left until hits piece
-            if self.x - i >= 0 and self.y + i < 8 and move_up_left:
-                move_up_left = tiles[self.x - i][self.y + i].highlighted = True
+            if move_up_left and self.x - i >= 0 and self.y + i < 8:
+                move_up_left = self.highlight_if_can_move_to(self.x - i, self.y + i, piece_manager, tiles)
             else:
                 move_up_left = False
+
+
             # Exits loop if no longer checking
             if not (move_up_right or move_down_right or move_down_left or move_up_left or move_up or move_down or move_right or move_left):
                 break
@@ -311,7 +335,7 @@ class King(Piece):
         for i in range(-1, 2):
             for j in range(-1, 2):
                 if 0 <= self.x + i < 8 and 0 <= self.y + j < 8 and not (i is 0 and j is 0):
-                    tiles[self.x + i][self.y + j].highlighted = True
+                    self.highlight_if_can_move_to(self.x + i, self.y + j, piece_manager, tiles)
 
         if not self.moved:
             # Checks to castle on left
