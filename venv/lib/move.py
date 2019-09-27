@@ -1,15 +1,20 @@
 import pieces
+from pieces import PieceSide
 
 class Move:
-    side = None
-    piece = None
+    piece_moved = None
+    piece_taken = None
     from_x, from_y, to_x, to_y = (0, 0, 0, 0)
 
-    def __init__(self, piece, from_x, from_y, to_x, to_y):
+    def __init__(self, piece_moved, piece_taken, from_x, from_y, to_x, to_y):
         self.from_x, self.from_y, self.to_x, self.to_y  = (from_x, from_y, to_x, to_y)
-        self.piece = piece
+        self.piece_moved = piece_moved
+        self.piece_taken = piece_taken
+
 
 class MoveManager:
+
+    turn = PieceSide.WHITE
 
     moves = []
     selected_piece = None
@@ -18,60 +23,74 @@ class MoveManager:
     def __init__(self, piece_manager):
         self.piece_manager = piece_manager
 
-
-    # def try_select(self, x, y, piece, board):
-    #
-    #     if self.selected_piece is not None:
-    #         self.attempt_move(x, y, piece, board)
-    #
-    #     else:
-    #         self.select_piece(x, y, piece, board)
-    #
-    #
-    # def attempt_move(self, x, y, piece, board):
-    #     if board.tiles[x][y].highlighted:
-    #         piece.x = x
-    #         piece.y = y
-    #     else:
-    #         self.selected_piece = None
-    #         board.deselect()
-
     def click_tile(self, x, y):
 
         piece = self.piece_manager.check_for_piece(x, y)
 
-        if piece is not None:
-            self.select_or_take(piece, x, y)
-        elif self.piece_manager.board.tiles[x][y].highlighted:
-            self.move_piece(x, y)
-        else:
-            self.deselect()
+        if self.selected_piece is not None:
+            if self.piece_manager.board.tiles[x][y].highlighted:
+                if piece is not None:
+                    self.take(x, y)
+                else:
+                    self.move_selected_piece(x, y)
+                return True
+            else:
+                self.deselect()
 
-    def select_or_take(self, piece, x, y):
-        if self.selected_piece is None:
-            self.selected_piece = piece
-            self.piece_manager.select_piece(x, y, piece)
-        elif self.selected_piece.piece_side is piece.piece_side:
-            self.deselect()
-        else:
-            # take piece
-            pass
+        elif piece is not None:
+            if piece.piece_side is self.turn:
+                self.selected_piece = piece
+                self.piece_manager.select_piece(x, y, piece)
 
-    def move_piece(self, x, y):
-        self.selected_piece.x = x
-        self.selected_piece.y = y
-        self.selected_piece.moved = True
-        self.deselect()
+        return False
 
     def deselect(self):
         self.selected_piece = None
         self.piece_manager.board.deselect()
 
-    def attempt_move(self, piece, to_x, to_y):
-        pass
+    def move_selected_piece(self, x, y, piece_taken=None):
+        #This must be called first as it extracts the pieces original x,y
+        self.moves.append(Move(self.selected_piece, piece_taken, self.selected_piece.x, self.selected_piece.y, x, y))
+
+        self.selected_piece.move(x, y)
+
+        self.deselect()
+
+        self.toggle_turn()
+        self.print()
+
+    def take(self, x, y):
+        piece_taken = self.piece_manager.check_for_piece(x, y)
+        self.piece_manager.living_pieces.remove(piece_taken)
+        self.piece_manager.dead_pieces.append(piece_taken)
+        self.move_selected_piece(x, y, piece_taken)
 
     def get_last(self):
         pass
 
     def undo(self):
-        pass
+        if len(self.moves) > 0:
+            piece_moved = self.moves[-1].piece_moved
+            piece_taken = self.moves[-1].piece_taken
+
+            piece_moved.undo_move(self.moves[-1].from_x, self.moves[-1].from_y)
+            if piece_taken is not None:
+                self.piece_manager.living_pieces.append(piece_taken)
+                self.piece_manager.dead_pieces.remove(piece_taken)
+                piece_taken.x = self.moves[-1].to_x
+                piece_taken.y = self.moves[-1].to_y
+            self.moves.pop(-1)
+
+        self.toggle_turn()
+        self.deselect()
+
+    def toggle_turn(self):
+        if self.turn is PieceSide.WHITE:
+            self.turn = PieceSide.BLACK
+        else:
+            self.turn = PieceSide.WHITE
+
+    def print(self):
+        move = self.moves[len(self.moves) - 1]
+
+        print(move.piece_moved.name, " (",move.from_x,",", move.from_y,") to (", move.to_x,",",  move.to_y,")")
