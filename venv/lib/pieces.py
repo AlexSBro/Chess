@@ -93,7 +93,7 @@ class Piece:
             return False
 
 
-    def move(self, new_x, new_y):
+    def move(self, new_x, new_y, piece_manager):
         self.x = new_x
         self.y = new_y
 
@@ -348,11 +348,22 @@ class King(Piece):
                 if 0 <= self.x + i < 8 and 0 <= self.y + j < 8 and not (i is 0 and j is 0):
                     self.highlight_if_can_move_to(self.x + i, self.y + j, piece_manager, tiles)
 
-        if not self.moved:
+        if self.moves is 0:
             # Checks to castle on left
-            if tiles[self.x-2][self.y].piece is None and tiles[self.x - 1][self.y].piece is None and type(tiles[self.x - 3][self.y].piece) is Rook and not tiles[self.x - 3][self.y].piece.moved:
+            if piece_manager.check_for_piece(self.x-2,self.y) is None and piece_manager.check_for_piece(self.x - 1,self.y) is None and type(piece_manager.check_for_piece(self.x - 3,self.y)) is Rook and piece_manager.check_for_piece(self.x - 3,self.y).moves is 0:
                 tiles[self.x - 2][self.y].highlighted = True
             # Checks to castle on right
-            if tiles[self.x+3][self.y].piece is None and tiles[self.x+2][self.y].piece is None and tiles[self.x + 1][self.y].piece is None and type(tiles[self.x + 4][self.y].piece) is Rook and not tiles[self.x + 4][self.y].piece.moved:
+            if piece_manager.check_for_piece(self.x+3,self.y) is None and piece_manager.check_for_piece(self.x+2,self.y) is None and piece_manager.check_for_piece(self.x + 1,self.y) is None and type(piece_manager.check_for_piece(self.x + 4,self.y)) is Rook and piece_manager.check_for_piece(self.x + 4,self.y).moves is 0:
                 tiles[self.x + 2][self.y].highlighted = True
+
+    def move(self, new_x, new_y, piece_manager):
+        # King side castle
+        if self.x - new_x > 1:
+            piece = piece_manager.check_for_piece(0, self.y)
+            piece.move(2, self.y, piece_manager)
+        #Queenside castle
+        elif self.x - new_x < 1:
+            piece = piece_manager.check_for_piece(7, self.y)
+            piece.move(4, self.y, piece_manager)
+        super().move(new_x, new_y, piece_manager)
 

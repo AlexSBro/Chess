@@ -52,7 +52,7 @@ class MoveManager:
         #This must be called first as it extracts the pieces original x,y
         self.moves.append(Move(self.selected_piece, piece_taken, self.selected_piece.x, self.selected_piece.y, x, y))
 
-        self.selected_piece.move(x, y)
+        self.selected_piece.move(x, y, self.piece_manager)
 
         self.deselect()
 

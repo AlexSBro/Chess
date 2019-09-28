@@ -27,7 +27,6 @@ def draw():
 
 
 running = True
-change_perspective = False
 
 while running:
 
