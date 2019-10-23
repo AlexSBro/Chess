@@ -44,7 +44,6 @@ class Board:
 
         return x,y
 
-
     def convert_coords_into_indecies(self, x_pos, y_pos):
         x = int(x_pos / settings.SQUARE_SIZE)
         y = int(y_pos / settings.SQUARE_SIZE)

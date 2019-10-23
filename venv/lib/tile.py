@@ -9,12 +9,10 @@ class TileSide(Enum):
 
 class Tile:
 
-    piece = None
+    x,y = 0,0
+
     selected = False
     highlighted = False
-
-    x = 0
-    y = 0
     tile_side = TileSide.LIGHT
 
     def __init__(self, x, y, tile_side):
