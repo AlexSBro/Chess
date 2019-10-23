@@ -1,11 +1,9 @@
 from enum import Enum
+from move import MoveType
+from piece_meta import PieceSide
 import settings
 import pygame
 
-
-class PieceSide(Enum):
-    WHITE = 0
-    BLACK = 1
 
 class PieceManager:
 
@@ -98,6 +96,8 @@ class Piece:
         self.y = new_y
 
         self.moves += 1
+
+        return MoveType.NORMAL
 
     def undo_move(self, old_x, old_y):
         self.x = old_x
@@ -357,13 +357,22 @@ class King(Piece):
                 tiles[self.x + 2][self.y].highlighted = True
 
     def move(self, new_x, new_y, piece_manager):
+        move_type = MoveType.NORMAL
+
         # King side castle
         if self.x - new_x > 1:
             piece = piece_manager.check_for_piece(0, self.y)
             piece.move(2, self.y, piece_manager)
+            move_type = MoveType.KING_SIDE_CASTLE
         #Queenside castle
         elif self.x - new_x < 1:
             piece = piece_manager.check_for_piece(7, self.y)
             piece.move(4, self.y, piece_manager)
-        super().move(new_x, new_y, piece_manager)
+            move_type = MoveType.QUEEN_SIDE_CASTLE
 
+        self.x = new_x
+        self.y = new_y
+
+        self.moves += 1
+
+        return move_type

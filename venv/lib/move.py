@@ -1,15 +1,28 @@
 import pieces
-from pieces import PieceSide
+from piece_meta import PieceSide
+from enum import Enum
+
+
+class MoveType(Enum):
+    NORMAL = 0
+    KING_SIDE_CASTLE = 1
+    QUEEN_SIDE_CASTLE = 2
+
 
 class Move:
+
+    move_type = MoveType.NORMAL
+
     piece_moved = None
     piece_taken = None
+
     from_x, from_y, to_x, to_y = (0, 0, 0, 0)
 
-    def __init__(self, piece_moved, piece_taken, from_x, from_y, to_x, to_y):
+    def __init__(self, piece_moved, piece_taken, from_x, from_y, to_x, to_y, move_type=MoveType.NORMAL):
         self.from_x, self.from_y, self.to_x, self.to_y  = (from_x, from_y, to_x, to_y)
         self.piece_moved = piece_moved
         self.piece_taken = piece_taken
+        self.move_type = move_type
 
 
 class MoveManager:
