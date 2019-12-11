@@ -110,12 +110,6 @@ class MoveManager:
         self.piece_manager.living_pieces.remove(piece_taken)
         self.piece_manager.dead_pieces.append(piece_taken)
 
-    def was_last_piece_moved(self, piece):
-
-        last_piece_moved = self.get_last().piece_moved
-
-        return last_piece_moved is piece
-
     def undo_if_moved(self):
         #Will only undo if there has actually been a move
         should_undo = len(self.moves) > 0
@@ -143,6 +137,9 @@ class MoveManager:
         #This recursive method calls this method again if the move was a castle so that both of the pieces will be moved back to where expected.
         if move_to_be_undone.move_type is MoveType.QUEEN_SIDE_CASTLE or move_to_be_undone.move_type is MoveType.KING_SIDE_CASTLE:
             self.undo()
+
+        #This resets the piece managers last piece moved so that it can still decide if an en passant is necessary
+        self.piece_manager.last_piece_moved = self.moves[-1].piece_moved
 
         self.toggle_turn()
         self.deselect()
