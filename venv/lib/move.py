@@ -4,10 +4,11 @@ from enum import Enum
 
 
 class MoveType(Enum):
-    NORMAL = 0
-    KING_SIDE_CASTLE = 1
-    QUEEN_SIDE_CASTLE = 2
-
+    NONE = 0
+    NORMAL = 1
+    KING_SIDE_CASTLE = 2
+    QUEEN_SIDE_CASTLE = 3
+    EN_PASSANT = 4
 
 class Move:
 
@@ -40,17 +41,22 @@ class MoveManager:
 
         piece = self.piece_manager.check_for_piece(x, y)
 
+        #Decided if selecting or moving an already selected piece
         if self.selected_piece is not None:
-            if self.piece_manager.board.tiles[x][y].highlighted:
+            selected_tile = self.piece_manager.board.tiles[x][y]
+            #Case for valid move that is highlighted
+            if selected_tile.move_type != MoveType.NONE:
+                #Decides if it will be taking or just moving
                 if piece is not None:
-                    self.take(x, y)
+                    self.take(x, y, selected_tile.move_type)
                 else:
-                    self.move_selected_piece(x, y)
+                    self.move_selected_piece(x, y, selected_tile.move_type)
                 return True
             else:
                 self.deselect()
-
+        #Case for no current selection and attempts to select piece.
         elif piece is not None:
+            #Ensures that you are selecting your own piece
             if piece.piece_side is self.turn:
                 self.selected_piece = piece
                 self.piece_manager.select_piece(x, y, piece)
@@ -61,41 +67,71 @@ class MoveManager:
         self.selected_piece = None
         self.piece_manager.board.deselect()
 
-    def move_selected_piece(self, x, y, piece_taken=None):
-        #This must be called first as it extracts the pieces original x,y
-        self.moves.append(Move(self.selected_piece, piece_taken, self.selected_piece.x, self.selected_piece.y, x, y))
+    def move_selected_piece(self, x, y, move_type, piece_taken=None):
 
+        # These select and move the correct rook if the piece is castling
+        if move_type is MoveType.KING_SIDE_CASTLE:
+            piece = self.piece_manager.check_for_piece(0, y)
+            self.moves.append(
+                Move(piece, None, piece.x, piece.y, 2, y, MoveType.NORMAL))
+            piece.move(2, y, self.piece_manager)
+        elif move_type is MoveType.QUEEN_SIDE_CASTLE:
+            piece = self.piece_manager.check_for_piece(7, y)
+            self.moves.append(
+                Move(piece, None, piece.x, piece.y, 4, y, MoveType.NORMAL))
+            piece.move(4, y, self.piece_manager)
+
+
+        #This is the code to move the expected piece as must be done for any case
+        #This must be called first as it extracts the pieces original x,y
+        self.moves.append(Move(self.selected_piece, piece_taken, self.selected_piece.x, self.selected_piece.y, x, y, move_type))
+        #Code for actually moving the piece
         self.selected_piece.move(x, y, self.piece_manager)
 
         self.deselect()
 
         self.toggle_turn()
+        #This logs all of the moves in the game.
         self.print()
 
-    def take(self, x, y):
+    def take(self, x, y, move_type):
         piece_taken = self.piece_manager.check_for_piece(x, y)
         self.piece_manager.living_pieces.remove(piece_taken)
         self.piece_manager.dead_pieces.append(piece_taken)
-        self.move_selected_piece(x, y, piece_taken)
+        self.move_selected_piece(x, y, move_type, piece_taken)
 
-    def get_last(self):
-        pass
+    def was_last_piece_moved(self, piece):
+
+        last_piece_moved = self.get_last().piece_moved
+
+        return last_piece_moved is piece
 
     def undo(self):
         if len(self.moves) > 0:
-            piece_moved = self.moves[-1].piece_moved
-            piece_taken = self.moves[-1].piece_taken
+            move_to_be_undone = self.moves[-1]
 
-            piece_moved.undo_move(self.moves[-1].from_x, self.moves[-1].from_y)
+            piece_moved = move_to_be_undone.piece_moved
+            piece_taken = move_to_be_undone.piece_taken
+
+            piece_moved.undo_move(move_to_be_undone.from_x, move_to_be_undone.from_y)
             if piece_taken is not None:
                 self.piece_manager.living_pieces.append(piece_taken)
                 self.piece_manager.dead_pieces.remove(piece_taken)
-                piece_taken.x = self.moves[-1].to_x
-                piece_taken.y = self.moves[-1].to_y
+                piece_taken.x = move_to_be_undone.to_x
+                piece_taken.y = move_to_be_undone.to_y
             self.moves.pop(-1)
 
-        self.toggle_turn()
-        self.deselect()
+            #This recursive method calls this again if the move was a castle so that both of the pieces will be moved back to where expected.
+            if move_to_be_undone.move_type is MoveType.QUEEN_SIDE_CASTLE or move_to_be_undone.move_type is MoveType.KING_SIDE_CASTLE:
+                self.undo()
+
+            self.toggle_turn()
+            self.deselect()
+            return True
+        else:
+            self.deselect()
+            return False
+
 
     def toggle_turn(self):
         if self.turn is PieceSide.WHITE:

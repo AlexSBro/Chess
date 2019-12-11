@@ -53,5 +53,5 @@ class Board:
         for row in self.tiles:
             for tile in row:
                 tile.selected = False
-                tile.highlighted = False
+                tile.un_highlight()
 

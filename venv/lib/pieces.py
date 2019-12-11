@@ -10,6 +10,7 @@ class PieceManager:
     living_pieces = []
     dead_pieces = []
     board = None
+    last_piece_moved = None
 
     def __init__(self, board):
         self.board = board
@@ -82,22 +83,24 @@ class Piece:
     def highlight_if_can_move_to(self, x, y, piece_manager, tiles):
         optional_piece =  piece_manager.check_for_piece(x, y)
         if optional_piece is None:
-            tiles[x][y].highlighted = True
+            tiles[x][y].highlight()
             return True
         elif optional_piece.piece_side is not self.piece_side:
-            tiles[x][y].highlighted = True
+            tiles[x][y].highlight()
             return False
         elif optional_piece.piece_side is self.piece_side:
             return False
 
 
-    def move(self, new_x, new_y, piece_manager):
+    def move(self, new_x, new_y, piece_manager, move_type=MoveType.NORMAL):
         self.x = new_x
         self.y = new_y
 
         self.moves += 1
 
-        return MoveType.NORMAL
+        piece_manager.last_piece_moved = self
+
+        return move_type
 
     def undo_move(self, old_x, old_y):
         self.x = old_x
@@ -127,23 +130,38 @@ class Pawn(Piece):
         if self.piece_side is PieceSide.WHITE:
             direction = 1
 
-        # Highlights the move directly in front
-        unoccupied = piece_manager.check_for_piece(self.x, self.y + 1 * direction) is None
-
         if not piece_manager.check_occupied(self.x, self.y + 1 * direction):
-            tiles[self.x][self.y + 1 * direction].highlighted = True
+            tiles[self.x][self.y + 1 * direction].highlight()
 
         # Checks for being on the first square and being able to move two ahead as long as it was not blocked before
         if not piece_manager.check_occupied(self.x, self.y + 2 * direction) and not piece_manager.check_occupied(self.x, self.y + 1 * direction) and self.moves is 0:
-            tiles[self.x][self.y + 2 * direction].highlighted = True
+            tiles[self.x][self.y + 2 * direction].highlight()
 
         # Checks for diagonals and right with enemy pieces
         if self.x + 1 < 8 and piece_manager.occupied_by_enemy(self.x + 1, self.y + 1 * direction, self.piece_side):
-            tiles[self.x + 1][self.y + 1 * direction].highlighted = True
+            tiles[self.x + 1][self.y + 1 * direction].highlight()
 
         # Checks for diagonals and left with enemy pieces
         if self.x - 1 > -1 and  piece_manager.occupied_by_enemy(self.x - 1, self.y + 1 * direction, self.piece_side):
-            tiles[self.x - 1][self.y + 1 * direction].highlighted = True
+            tiles[self.x - 1][self.y + 1 * direction].highlight()
+
+        # Checks for diagonals and right with enemy pieces
+        if self.x + 1 < 8 and self.check_en_pessant(self.x + 1, self.y, self.piece_side, piece_manager):
+            tiles[self.x + 1][self.y + 1 * direction].highlight()
+
+        # Checks for diagonals and left with enemy pieces
+        if self.x - 1 > -1 and  self.check_en_pessant(self.x - 1, self.y , self.piece_side, piece_manager):
+            tiles[self.x - 1][self.y + 1 * direction].highlight()
+
+    def check_en_pessant(self, x, y, side, piece_manager):
+        optional_piece = piece_manager.check_for_piece(x, y)
+        if optional_piece is None:
+            return False
+        else:
+            return optional_piece.piece_side is not side \
+                   and isinstance(optional_piece, Pawn) \
+                   and optional_piece is piece_manager.last_piece_moved \
+                   and optional_piece.moves is 1
 
 
 class Knight(Piece):
@@ -165,13 +183,13 @@ class Knight(Piece):
             for j in range(1,3):
                 if i is not j:
                     if self.x + i < 8 and self.y + j < 8 and not piece_manager.occupied_by_friend(self.x + i, self.y + j, self.piece_side):
-                        tiles[self.x + i][self.y + j].highlighted = True
+                        tiles[self.x + i][self.y + j].highlight()
                     if self.x - i >= 0 and self.y - j >= 0 and not piece_manager.occupied_by_friend(self.x - i, self.y - j, self.piece_side):
-                        tiles[self.x - i][self.y - j].highlighted = True
+                        tiles[self.x - i][self.y - j].highlight()
                     if self.x + i < 8 and self.y - j >= 0 and not piece_manager.occupied_by_friend(self.x + i, self.y - j, self.piece_side):
-                        tiles[self.x + i][self.y - j].highlighted = True
+                        tiles[self.x + i][self.y - j].highlight()
                     if self.x - i >= 0 and self.y + j < 8 and not piece_manager.occupied_by_friend(self.x - i, self.y + j, self.piece_side):
-                        tiles[self.x - i][self.y + j].highlighted = True
+                        tiles[self.x - i][self.y + j].highlight()
 
 
 class Bishop(Piece):
@@ -351,28 +369,8 @@ class King(Piece):
         if self.moves is 0:
             # Checks to castle on left
             if piece_manager.check_for_piece(self.x-2,self.y) is None and piece_manager.check_for_piece(self.x - 1,self.y) is None and type(piece_manager.check_for_piece(self.x - 3,self.y)) is Rook and piece_manager.check_for_piece(self.x - 3,self.y).moves is 0:
-                tiles[self.x - 2][self.y].highlighted = True
+                tiles[self.x - 2][self.y].highlight(MoveType.KING_SIDE_CASTLE)
+
             # Checks to castle on right
             if piece_manager.check_for_piece(self.x+3,self.y) is None and piece_manager.check_for_piece(self.x+2,self.y) is None and piece_manager.check_for_piece(self.x + 1,self.y) is None and type(piece_manager.check_for_piece(self.x + 4,self.y)) is Rook and piece_manager.check_for_piece(self.x + 4,self.y).moves is 0:
-                tiles[self.x + 2][self.y].highlighted = True
-
-    def move(self, new_x, new_y, piece_manager):
-        move_type = MoveType.NORMAL
-
-        # King side castle
-        if self.x - new_x > 1:
-            piece = piece_manager.check_for_piece(0, self.y)
-            piece.move(2, self.y, piece_manager)
-            move_type = MoveType.KING_SIDE_CASTLE
-        #Queenside castle
-        elif self.x - new_x < 1:
-            piece = piece_manager.check_for_piece(7, self.y)
-            piece.move(4, self.y, piece_manager)
-            move_type = MoveType.QUEEN_SIDE_CASTLE
-
-        self.x = new_x
-        self.y = new_y
-
-        self.moves += 1
-
-        return move_type
+                tiles[self.x + 2][self.y].highlight(MoveType.QUEEN_SIDE_CASTLE)

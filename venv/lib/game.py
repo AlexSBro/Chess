@@ -46,8 +46,9 @@ while running:
             if event.key == pygame.K_SPACE:
                 board.perspective_white = not board.perspective_white
             if event.key == pygame.K_u:
-                move_manager.undo()
-                board.perspective_white = not board.perspective_white
+                # This method checks weather or not it is the first move before it does anything so that you cannot wind up with black perspective with no moves.
+                if move_manager.undo():
+                    board.perspective_white = not board.perspective_white
 
     draw()
     pygame.display.update()
