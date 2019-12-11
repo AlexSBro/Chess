@@ -153,11 +153,11 @@ class Pawn(Piece):
 
         # Checks for diagonals and right with enemy pieces for en pessant
         if self.x + 1 < 8 and self.check_en_pessant(self.x + 1, self.y, self.piece_side, piece_manager):
-            tiles[self.x + 1][self.y + (1 * direction)].highlight(move_type)
+            tiles[self.x + 1][self.y + (1 * direction)].highlight(move_type.EN_PASSANT)
 
         # Checks for diagonals and left with enemy pieces for en pessant
         if self.x - 1 > -1 and  self.check_en_pessant(self.x - 1, self.y , self.piece_side, piece_manager):
-            tiles[self.x - 1][self.y + (1 * direction)].highlight(move_type)
+            tiles[self.x - 1][self.y + (1 * direction)].highlight(move_type.EN_PASSANT)
 
     def check_en_pessant(self, x, y, side, piece_manager):
         optional_piece = piece_manager.check_for_piece(x, y)

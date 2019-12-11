@@ -49,9 +49,9 @@ class MoveManager:
             if selected_tile.move_type != MoveType.NONE:
                 #Decides if it will be taking or just moving
                 if piece is not None:
-                    self.take(x, y, selected_tile.move_type)
-                else:
-                    self.move_selected_piece(x, y, selected_tile.move_type)
+                    self.take(x, y)
+
+                self.move_selected_piece(x, y, selected_tile.move_type)
                 return True
             else:
                 self.deselect()
@@ -83,12 +83,9 @@ class MoveManager:
             self.moves.append(
                 Move(piece, None, piece.x, piece.y, 4, y, MoveType.NORMAL))
             piece.move(4, y, self.piece_manager)
-        #This is the case for when the move type is a promotion
-        elif move_type is MoveType.PROMOTION:
-            new_queen = pieces.Queen(self.selected_piece.piece_side, self.selected_piece.x, self.selected_piece.y);
-            self.piece_manager.living_pieces.remove(self.selected_piece)
-            self.selected_piece = new_queen
-            self.piece_manager.living_pieces.append(new_queen)
+        elif move_type is MoveType.EN_PASSANT:
+            piece_taken = self.piece_manager.check_for_piece(x, self.selected_piece.y)
+            self.take(x, self.selected_piece.y)
 
         #This is the code to move the expected piece as must be done for any case
         #This must be called first as it extracts the pieces original x,y
@@ -96,17 +93,22 @@ class MoveManager:
         #Code for actually moving the piece
         self.selected_piece.move(x, y, self.piece_manager)
 
+        if move_type is MoveType.PROMOTION:
+            new_queen = pieces.Queen(self.selected_piece.piece_side, self.selected_piece.x, self.selected_piece.y);
+            self.piece_manager.living_pieces.remove(self.selected_piece)
+            self.selected_piece = new_queen
+            self.piece_manager.living_pieces.append(new_queen)
+
         self.deselect()
 
         self.toggle_turn()
         #This logs all of the moves in the game.
         self.print()
 
-    def take(self, x, y, move_type):
+    def take(self, x, y):
         piece_taken = self.piece_manager.check_for_piece(x, y)
         self.piece_manager.living_pieces.remove(piece_taken)
         self.piece_manager.dead_pieces.append(piece_taken)
-        self.move_selected_piece(x, y, move_type, piece_taken)
 
     def was_last_piece_moved(self, piece):
 
@@ -114,42 +116,55 @@ class MoveManager:
 
         return last_piece_moved is piece
 
-    def undo(self):
-        if len(self.moves) > 0:
-            move_to_be_undone = self.moves[-1]
+    def undo_if_moved(self):
+        #Will only undo if there has actually been a move
+        should_undo = len(self.moves) > 0
 
-            piece_moved = move_to_be_undone.piece_moved
-            piece_taken = move_to_be_undone.piece_taken
+        if should_undo:
+            self._undo()
 
-            #This introduces a bug as the undo is expecting to see the piece that it has already dealt with. Therefore this piece will have to be moved into purgetory or...! typecast!
-            #This must be called first as it swaps out the pieces quickly before following logic
-            if move_to_be_undone.move_type is MoveType.PROMOTION:
-                new_pawn = pieces.Pawn(piece_moved.piece_side, piece_moved.x, piece_moved.y);
-                self.piece_manager.living_pieces.remove(piece_moved)
-                piece_moved = new_pawn
-                self.piece_manager.living_pieces.append(new_pawn)
+        self.deselect()
+        return should_undo
 
-            piece_moved.undo_move(move_to_be_undone.from_x, move_to_be_undone.from_y)
-            if piece_taken is not None:
-                self.piece_manager.living_pieces.append(piece_taken)
-                self.piece_manager.dead_pieces.remove(piece_taken)
-                piece_taken.x = move_to_be_undone.to_x
+    def _undo(self):
+        move_to_be_undone = self.moves[-1]
+
+        piece_moved = move_to_be_undone.piece_moved
+        piece_taken = move_to_be_undone.piece_taken
+
+        #This must be called first as it re extracts the pawn that was promoted and puts it back into the living_pieces list
+        self.revert_if_en_pessant(move_to_be_undone)
+
+        piece_moved.undo_move(move_to_be_undone.from_x, move_to_be_undone.from_y)
+
+        #This puts any pieces that were taken back into play
+        self.restore_if_piece_taken(move_to_be_undone, piece_taken)
+
+        #This recursive method calls this method again if the move was a castle so that both of the pieces will be moved back to where expected.
+        if move_to_be_undone.move_type is MoveType.QUEEN_SIDE_CASTLE or move_to_be_undone.move_type is MoveType.KING_SIDE_CASTLE:
+            self.undo()
+
+        self.toggle_turn()
+        self.deselect()
+        return True
+
+    def restore_if_piece_taken(self, move_to_be_undone, piece_taken):
+        if piece_taken is not None:
+            self.piece_manager.living_pieces.append(piece_taken)
+            self.piece_manager.dead_pieces.remove(piece_taken)
+            if move_to_be_undone.move_type is MoveType.EN_PASSANT:
+                piece_taken.y = move_to_be_undone.from_y
+            else:
                 piece_taken.y = move_to_be_undone.to_y
-            self.moves.pop(-1)
+            piece_taken.x = move_to_be_undone.to_x
+        self.moves.pop(-1)
 
-            #This recursive method calls this again if the move was a castle so that both of the pieces will be moved back to where expected.
-            if move_to_be_undone.move_type is MoveType.QUEEN_SIDE_CASTLE or move_to_be_undone.move_type is MoveType.KING_SIDE_CASTLE:
-                self.undo()
-
-
-
-            self.toggle_turn()
-            self.deselect()
-            return True
-        else:
-            self.deselect()
-            return False
-
+    def revert_if_en_pessant(self, move_to_be_undone):
+        # This logic pulls the pre existing pawn out of the MoveManager Move list so that expected behavior continues
+        if move_to_be_undone.move_type is MoveType.PROMOTION:
+            old_pawn = move_to_be_undone.piece_moved
+            self.piece_manager.living_pieces.remove(self.piece_manager.check_for_piece(old_pawn.x, old_pawn.y))
+            self.piece_manager.living_pieces.append(old_pawn)
 
     def toggle_turn(self):
         if self.turn is PieceSide.WHITE:
