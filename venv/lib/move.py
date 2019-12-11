@@ -9,6 +9,7 @@ class MoveType(Enum):
     KING_SIDE_CASTLE = 2
     QUEEN_SIDE_CASTLE = 3
     EN_PASSANT = 4
+    PROMOTION = 5
 
 class Move:
 
@@ -69,6 +70,8 @@ class MoveManager:
 
     def move_selected_piece(self, x, y, move_type, piece_taken=None):
 
+        print(move_type)
+
         # These select and move the correct rook if the piece is castling
         if move_type is MoveType.KING_SIDE_CASTLE:
             piece = self.piece_manager.check_for_piece(0, y)
@@ -80,7 +83,12 @@ class MoveManager:
             self.moves.append(
                 Move(piece, None, piece.x, piece.y, 4, y, MoveType.NORMAL))
             piece.move(4, y, self.piece_manager)
-
+        #This is the case for when the move type is a promotion
+        elif move_type is MoveType.PROMOTION:
+            new_queen = pieces.Queen(self.selected_piece.piece_side, self.selected_piece.x, self.selected_piece.y);
+            self.piece_manager.living_pieces.remove(self.selected_piece)
+            self.selected_piece = new_queen
+            self.piece_manager.living_pieces.append(new_queen)
 
         #This is the code to move the expected piece as must be done for any case
         #This must be called first as it extracts the pieces original x,y
@@ -113,6 +121,14 @@ class MoveManager:
             piece_moved = move_to_be_undone.piece_moved
             piece_taken = move_to_be_undone.piece_taken
 
+            #This introduces a bug as the undo is expecting to see the piece that it has already dealt with. Therefore this piece will have to be moved into purgetory or...! typecast!
+            #This must be called first as it swaps out the pieces quickly before following logic
+            if move_to_be_undone.move_type is MoveType.PROMOTION:
+                new_pawn = pieces.Pawn(piece_moved.piece_side, piece_moved.x, piece_moved.y);
+                self.piece_manager.living_pieces.remove(piece_moved)
+                piece_moved = new_pawn
+                self.piece_manager.living_pieces.append(new_pawn)
+
             piece_moved.undo_move(move_to_be_undone.from_x, move_to_be_undone.from_y)
             if piece_taken is not None:
                 self.piece_manager.living_pieces.append(piece_taken)
@@ -124,6 +140,8 @@ class MoveManager:
             #This recursive method calls this again if the move was a castle so that both of the pieces will be moved back to where expected.
             if move_to_be_undone.move_type is MoveType.QUEEN_SIDE_CASTLE or move_to_be_undone.move_type is MoveType.KING_SIDE_CASTLE:
                 self.undo()
+
+
 
             self.toggle_turn()
             self.deselect()

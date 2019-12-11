@@ -126,32 +126,38 @@ class Pawn(Piece):
     def highlight_possible_moves(self, tiles, piece_manager):
 
         # Changes directions for black or white
+        promotion_row = 0
         direction = -1
         if self.piece_side is PieceSide.WHITE:
             direction = 1
+            promotion_row = 7
 
-        if not piece_manager.check_occupied(self.x, self.y + 1 * direction):
-            tiles[self.x][self.y + 1 * direction].highlight()
+        move_type = MoveType.NORMAL
+        if self.y + (1 * direction) is promotion_row:
+            move_type = move_type.PROMOTION
+
+        if not piece_manager.check_occupied(self.x, self.y + (1 * direction)):
+            tiles[self.x][self.y + (1 * direction)].highlight(move_type)
+
+        # Checks for diagonals and right with enemy pieces
+        if self.x + 1 < 8 and piece_manager.occupied_by_enemy(self.x + 1, self.y + (1 * direction), self.piece_side):
+            tiles[self.x + 1][self.y + (1 * direction)].highlight(move_type)
+
+        # Checks for diagonals and left with enemy pieces
+        if self.x - 1 > -1 and piece_manager.occupied_by_enemy(self.x - 1, self.y + 1 * direction, self.piece_side):
+            tiles[self.x - 1][self.y + (1 * direction)].highlight(move_type)
 
         # Checks for being on the first square and being able to move two ahead as long as it was not blocked before
-        if not piece_manager.check_occupied(self.x, self.y + 2 * direction) and not piece_manager.check_occupied(self.x, self.y + 1 * direction) and self.moves is 0:
-            tiles[self.x][self.y + 2 * direction].highlight()
+        if not piece_manager.check_occupied(self.x, self.y + (2 * direction)) and not piece_manager.check_occupied(self.x, self.y + (1 * direction)) and self.moves is 0:
+            tiles[self.x][self.y + 2 * direction].highlight(move_type)
 
-        # Checks for diagonals and right with enemy pieces
-        if self.x + 1 < 8 and piece_manager.occupied_by_enemy(self.x + 1, self.y + 1 * direction, self.piece_side):
-            tiles[self.x + 1][self.y + 1 * direction].highlight()
-
-        # Checks for diagonals and left with enemy pieces
-        if self.x - 1 > -1 and  piece_manager.occupied_by_enemy(self.x - 1, self.y + 1 * direction, self.piece_side):
-            tiles[self.x - 1][self.y + 1 * direction].highlight()
-
-        # Checks for diagonals and right with enemy pieces
+        # Checks for diagonals and right with enemy pieces for en pessant
         if self.x + 1 < 8 and self.check_en_pessant(self.x + 1, self.y, self.piece_side, piece_manager):
-            tiles[self.x + 1][self.y + 1 * direction].highlight()
+            tiles[self.x + 1][self.y + (1 * direction)].highlight(move_type)
 
-        # Checks for diagonals and left with enemy pieces
+        # Checks for diagonals and left with enemy pieces for en pessant
         if self.x - 1 > -1 and  self.check_en_pessant(self.x - 1, self.y , self.piece_side, piece_manager):
-            tiles[self.x - 1][self.y + 1 * direction].highlight()
+            tiles[self.x - 1][self.y + (1 * direction)].highlight(move_type)
 
     def check_en_pessant(self, x, y, side, piece_manager):
         optional_piece = piece_manager.check_for_piece(x, y)
