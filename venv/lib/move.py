@@ -27,6 +27,16 @@ class Move:
         self.move_type = move_type
 
 
+class PossibleMove:
+    x, y = 0, 0
+    move_type = MoveType.NONE
+
+    def __init__(self, x, y, move_type):
+        self.x = x
+        self.y = y
+        self.move_type = move_type
+
+
 class MoveManager:
 
     turn = PieceSide.WHITE
@@ -47,7 +57,7 @@ class MoveManager:
             selected_tile = self.piece_manager.board.tiles[x][y]
             #Case for valid move that is highlighted
             if selected_tile.move_type != MoveType.NONE:
-                #Decides if it will be taking or just moving
+                #Decides if it will be taking or just moving this method is also called in the move_selected_piece if it is an en passant
                 if piece is not None:
                     self.take(x, y)
 
@@ -83,6 +93,7 @@ class MoveManager:
             self.moves.append(
                 Move(piece, None, piece.x, piece.y, 4, y, MoveType.NORMAL))
             piece.move(4, y, self.piece_manager)
+        #This ensures that the correct piece is taken if it is an en passant.
         elif move_type is MoveType.EN_PASSANT:
             piece_taken = self.piece_manager.check_for_piece(x, self.selected_piece.y)
             self.take(x, self.selected_piece.y)
@@ -93,17 +104,21 @@ class MoveManager:
         #Code for actually moving the piece
         self.selected_piece.move(x, y, self.piece_manager)
 
-        if move_type is MoveType.PROMOTION:
-            new_queen = pieces.Queen(self.selected_piece.piece_side, self.selected_piece.x, self.selected_piece.y);
-            self.piece_manager.living_pieces.remove(self.selected_piece)
-            self.selected_piece = new_queen
-            self.piece_manager.living_pieces.append(new_queen)
+        #This method changes the selected piece to a queen if the MoveType is PROMOTION and adds it to the PieceManager.living_piece list.
+        self.if_promotion_swap_for_queen(move_type)
 
         self.deselect()
 
         self.toggle_turn()
         #This logs all of the moves in the game.
         self.print()
+
+    def if_promotion_swap_for_queen(self, move_type):
+        if move_type is MoveType.PROMOTION:
+            new_queen = pieces.Queen(self.selected_piece.piece_side, self.selected_piece.x, self.selected_piece.y);
+            self.piece_manager.living_pieces.remove(self.selected_piece)
+            self.selected_piece = new_queen
+            self.piece_manager.living_pieces.append(new_queen)
 
     def take(self, x, y):
         piece_taken = self.piece_manager.check_for_piece(x, y)
@@ -139,7 +154,10 @@ class MoveManager:
             self.undo()
 
         #This resets the piece managers last piece moved so that it can still decide if an en passant is necessary
-        self.piece_manager.last_piece_moved = self.moves[-1].piece_moved
+        if len(self.moves) > 1:
+            self.piece_manager.last_piece_moved = self.moves[-1].piece_moved
+        else:
+            self.piece_manager.last_piece_moved = None
 
         self.toggle_turn()
         self.deselect()
