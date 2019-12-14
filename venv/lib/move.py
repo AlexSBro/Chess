@@ -49,8 +49,11 @@ class MoveManager:
         self.piece_manager = piece_manager
 
     def click_tile(self, x, y):
-
         piece = self.piece_manager.check_for_piece(x, y)
+        if self.piece_manager.king_in_check(self.turn):
+            print("KING IN CHECK")
+        else:
+            print("KING SAFE")
 
         #Decided if selecting or moving an already selected piece
         if self.selected_piece is not None:
@@ -58,10 +61,12 @@ class MoveManager:
             #Case for valid move that is highlighted
             if selected_tile.move_type != MoveType.NONE:
                 #Decides if it will be taking or just moving this method is also called in the move_selected_piece if it is an en passant
+                piece_taken = None
                 if piece is not None:
+                    piece_taken = piece
                     self.take(x, y)
 
-                self.move_selected_piece(x, y, selected_tile.move_type)
+                self.move_selected_piece(x, y, selected_tile.move_type, piece_taken)
                 return True
             else:
                 self.deselect()
@@ -79,8 +84,6 @@ class MoveManager:
         self.piece_manager.board.deselect()
 
     def move_selected_piece(self, x, y, move_type, piece_taken=None):
-
-        print(move_type)
 
         # These select and move the correct rook if the piece is castling
         if move_type is MoveType.KING_SIDE_CASTLE:
@@ -164,14 +167,17 @@ class MoveManager:
         return True
 
     def restore_if_piece_taken(self, move_to_be_undone, piece_taken):
+        print(piece_taken)
         if piece_taken is not None:
             self.piece_manager.living_pieces.append(piece_taken)
             self.piece_manager.dead_pieces.remove(piece_taken)
+
+            piece_taken.y = move_to_be_undone.to_y
+            piece_taken.x = move_to_be_undone.to_x
+
             if move_to_be_undone.move_type is MoveType.EN_PASSANT:
                 piece_taken.y = move_to_be_undone.from_y
-            else:
-                piece_taken.y = move_to_be_undone.to_y
-            piece_taken.x = move_to_be_undone.to_x
+
         self.moves.pop(-1)
 
     def revert_if_en_pessant(self, move_to_be_undone):

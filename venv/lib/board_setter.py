@@ -67,3 +67,6 @@ class BoardSetter:
 
         white_queen = Queen(PieceSide.WHITE, 4, 0)
         piece_manager.living_pieces.append(white_queen)
+
+        piece_manager.white_king = white_king
+        piece_manager.black_king = black_king

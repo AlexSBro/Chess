@@ -8,6 +8,9 @@ import abc
 
 class PieceManager:
 
+    white_king = None
+    black_king = None
+
     living_pieces = []
     dead_pieces = []
     board = None
@@ -50,12 +53,25 @@ class PieceManager:
         else:
             return optional_piece.piece_side is not side
 
+    # To use this method enter the players piece side.
     def under_attack(self, x, y, piece_side):
-        raise NotImplementedError
+        for piece in self.living_pieces:
+            if piece.piece_side is not piece_side:
+                squares_under_attack = piece.get_possible_moves(self)
+                for possible_move in squares_under_attack:
+                    if possible_move.x is x and possible_move.y is y:
+                        return True
+        return False
 
     def draw(self, surface, perspective_white):
         for piece in self.living_pieces:
             piece.draw(surface, perspective_white)
+
+    def king_in_check(self, piece_side):
+        if piece_side is PieceSide.WHITE:
+            return self.white_king.in_check(self)
+        else:
+            return self.black_king.in_check(self)
 
 
 class Piece:
@@ -165,11 +181,11 @@ class Pawn(Piece):
 
         # Checks for diagonals and right with enemy pieces for en pessant
         if self.x + 1 < 8 and self.check_en_pessant(self.x + 1, self.y, self.piece_side, piece_manager):
-            possible_moves.append(PossibleMove(self.x + 1, self.y + (1 * direction), move_type))
+            possible_moves.append(PossibleMove(self.x + 1, self.y + (1 * direction), MoveType.EN_PASSANT))
 
         # Checks for diagonals and left with enemy pieces for en pessant
         if self.x - 1 > -1 and  self.check_en_pessant(self.x - 1, self.y , self.piece_side, piece_manager):
-            possible_moves.append(PossibleMove(self.x - 1, self.y + (1 * direction), move_type))
+            possible_moves.append(PossibleMove(self.x - 1, self.y + (1 * direction), MoveType.EN_PASSANT))
 
         return possible_moves
 
@@ -405,8 +421,9 @@ class King(Piece):
 
         for i in range(-1, 2):
             for j in range(-1, 2):
-                if 0 <= self.x + i < 8 and 0 <= self.y + j < 8 and not (i is 0 and j is 0):
-                    self.highlight_if_can_move_to(self.x + i, self.y + j, piece_manager, possible_moves)
+                translated_x, translated_y = self.x + i, self.y + j
+                if 0 <= translated_x < 8 and 0 <= translated_y < 8 and not (i is 0 and j is 0):
+                    self.highlight_if_can_move_to(translated_x, translated_y, piece_manager, possible_moves)
 
         if self.moves is 0:
             # Checks to castle on left
@@ -418,3 +435,12 @@ class King(Piece):
                 possible_moves.append(self.x + 2, self.y, MoveType.QUEEN_SIDE_CASTLE)
 
         return possible_moves
+
+    def highlight_possible_moves(self, tiles, piece_manager):
+        possible_moves = self.get_possible_moves(piece_manager)
+        for move in possible_moves:
+            if not piece_manager.under_attack(move.x, move.y, self.piece_side):
+                tiles[move.x][move.y].highlight(move.move_type)
+
+    def in_check(self, piece_manager):
+        return piece_manager.under_attack(self.x, self.y, self.piece_side)
